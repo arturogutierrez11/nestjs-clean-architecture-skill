@@ -1,43 +1,71 @@
 # Arquitectura y composición
 
-## Estructura reutilizable
+## Estructura reutilizable: regla obligatoria del equipo
 
-Rutas relativas a la raíz del paquete NestJS destino. `<feature>` y `<integration>` representan nombres que se deben obtener de ese proyecto; no son carpetas literales.
+La organización primaria es **capa → dominio/recurso → funcionalidad/caso de uso**. Esta decisión explícita del equipo sustituye la distribución plana o por integración del modelo; no se presenta como una convención ya implementada allí.
+
+Rutas relativas a la raíz del paquete destino. `<domain>` y `<use-case>` se reemplazan por nombres de su negocio, iguales entre capas.
 
 ```text
 src/
 ├── main.ts
 ├── app/
 │   ├── app.module.ts
-│   ├── controller/
-│   │   └── hateoas/              # sólo si se utiliza esa presentación
-│   ├── module/
-│   │   └── <group>/              # agrupación opcional de módulos relacionados
-│   ├── drivers/
-│   │   └── <integration>/        # cuando justifica agrupar varios archivos
-│   └── service/                 # consumidores/adaptadores de ejecución Nest
-├── core/
-│   ├── entities/
-│   ├── interactors/
-│   │   ├── <feature>/
-│   │   ├── exceptions/
-│   │   └── validations/
-│   ├── adapters/
-│   │   ├── repositories/
-│   │   ├── cache/               # opcional
-│   │   └── queue/               # opcional
-│   └── drivers/
-│       ├── repositories/
-│       │   ├── <integration>/
-│       │   └── common/          # helpers de infraestructura compartidos
-│       ├── cache/               # opcional
-│       └── logger/
-└── utils/                       # helpers compartidos con responsabilidad concreta
+│   ├── controller/<domain>/<use-case>/
+│   ├── drivers/<domain>/<use-case>/
+│   ├── module/<domain>/<use-case>/
+│   └── service/<domain>/<use-case>/       # si hay consumidor/job
+└── core/
+    ├── entities/<domain>/                # modelos compartidos del dominio
+    ├── adapters/<domain>/<use-case>/
+    ├── drivers/<domain>/<use-case>/
+    └── interactors/<domain>/<use-case>/
 ```
 
-Los tests `.test.ts` se colocan junto al código que prueban. Si hay un worker independiente, su entrypoint está en `src`, con su módulo de composición en `app/module`; el nombre depende del trabajo del proceso.
+Crear sólo las carpetas y componentes necesarios. Mantener tests junto al archivo probado. La simetría es conceptual, no obliga a generar un archivo en cada capa ni un service vacío.
 
-No crear la estructura entera vacía. No imponer una carpeta `order`, `product`, `dto`, `ports`, `mappers`, `domain`, `application` o `infrastructure`: no son requisitos de esta metodología. En un proyecto ya organizado con nombres equivalentes, conservar esa organización puede ser la opción correcta para un cambio localizado.
+### Ejemplo normativo: listar productos
+
+Este es un ejemplo del equipo, adaptable a cualquier dominio; no es una extracción del modelo histórico.
+
+```text
+src/
+├── core/
+│   ├── adapters/products/list-products/IGetAllProducts.ts
+│   ├── drivers/products/list-products/GetAllProductsRepository.ts
+│   ├── entities/products/Product.ts
+│   └── interactors/products/list-products/GetAllProducts.ts
+└── app/
+    ├── controller/products/list-products/listProducts.controller.ts
+    ├── drivers/products/list-products/NestGetAllProductsRepository.ts
+    └── module/products/list-products/ListProducts.module.ts
+```
+
+Todos los participantes usan `products/list-products`. La clase y token del interactor son `GetAllProducts`; el controller puede llamarse `ListProductsController` y el módulo `ListProductsModule`. La consistencia es de recurso/operación y de tokens, no igualdad literal de todos los nombres.
+
+### Compartir sin duplicar ni anidar por costumbre
+
+| Alcance real | Ubicación |
+|---|---|
+| Una operación | `<layer>/<domain>/<use-case>/` |
+| Entidad usada por varias operaciones | `core/entities/<domain>/` |
+| Contrato o driver compartido por operaciones del dominio | `core/adapters/<domain>/` o `core/drivers/<domain>/`; wrapper en `app/drivers/<domain>/` |
+| Modelo de entrada/salida exclusivo de una operación | `core/entities/<domain>/<use-case>/` si esa agrupación aporta claridad |
+| Composición de providers compartidos del dominio | Módulo en `app/module/<domain>/`, importado por los módulos consumidores |
+| Infraestructura transversal a dominios | Área compartida explícita dentro de su capa, por ejemplo `core/drivers/shared/http/` o `app/drivers/shared/cache/` |
+| Validación/excepción transversal | Área común identificable de su capa; conservar helpers existentes si ya están claramente separados |
+
+Antes de promover un componente, comprobá que varios consumidores comparten la misma responsabilidad y contrato. Parecido textual no basta. Un driver compartido no debe vivir bajo el caso de uso de uno de sus consumidores. Actualizá imports, exports y providers al promoverlo; no crees conexiones duplicadas ni dependencias circulares.
+
+No agregar automáticamente `repositories/<provider>/implementations` debajo de cada funcionalidad. Dentro del nivel elegido, añadir una subcarpeta por tecnología/proveedor sólo cuando haya variantes que necesiten distinguirse. No usar `shared` como depósito de archivos sin dueño: indicar capacidad y consumidores.
+
+Los entrypoints y `app.module.ts` permanecen en sus ubicaciones de arranque. Un worker independiente tiene entrypoint propio y módulo organizado según el dominio/operación que ejecuta, o composición común si agrupa varias operaciones.
+
+### Aplicación en proyectos existentes
+
+Archivos nuevos siguen la jerarquía aunque el proyecto tenga carpetas planas. Un refactor organizado por funcionalidad mueve el conjunto afectado, mantiene rutas HTTP/tokens públicos cuando corresponda y actualiza imports/tests/configuración. Registrar áreas heredadas pendientes; no migrar todo el repositorio incidentalmente.
+
+Una carpeta con muchas operaciones mezcladas incumple la regla incluso si sus dependencias entre capas son correctas. No hay un máximo arbitrario de archivos: evaluar si la responsabilidad de cada funcionalidad se puede reconocer visualmente. Evitar profundidad redundante, pero no omitir el nivel de funcionalidad en componentes exclusivos de un caso de uso.
 
 ## Dependencias lógicas y ejecución
 
@@ -83,7 +111,7 @@ Pasos de registro:
 4. El módulo raíz importa el módulo funcional.
 5. Sólo exportá un provider cuando un módulo consumidor lo requiera; ese consumidor debe importar el módulo que lo exporta.
 
-En el modelo, las áreas funcionales tienen módulos propios y algunas funcionalidades simples se componen directamente en el módulo raíz. No es obligatorio crear un módulo por clase. Tampoco es necesario declarar todo como global.
+En el modelo, las áreas funcionales tienen módulos propios y algunas funcionalidades simples se componen directamente en el módulo raíz. No es obligatorio crear un módulo por clase; ubicar cada módulo según el dominio y los casos de uso que compone. Tampoco es necesario declarar todo como global.
 
 Las interfaces TypeScript no son tokens disponibles en runtime. El patrón utiliza strings con el nombre del interactor, clases concretas para drivers y tokens de bibliotecas como `APP_FILTER` o `CACHE_MANAGER`. No hay un estándar propio basado en `Symbol()`.
 

@@ -6,6 +6,10 @@ Los nombres comerciales y proveedores se conservan sólo para demostrar la imple
 
 Los fragmentos son referencias de responsabilidades, no un scaffold ejecutable completo. Los imports `@core`/`@app` pertenecen al modelo y deben resolverse con la configuración del destino. Los recortes se identifican por archivo, símbolo y líneas de la revisión citada. Las limitaciones se explicitan para no reproducir defectos.
 
+## Organización actual del equipo frente a rutas históricas
+
+Las rutas de origen de estos fragmentos conservan la distribución histórica del modelo. **No son las ubicaciones a copiar al crear archivos nuevos.** Aplicá capa → dominio → caso de uso según [architecture.md](architecture.md). Conservá la forma de construcción, los contratos y la separación de responsabilidades, reubicándolos en la jerarquía correspondiente del destino.
+
 ## Índice
 
 1. Interactor y contrato: construcción sin Nest.

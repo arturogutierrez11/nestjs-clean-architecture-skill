@@ -2,17 +2,18 @@
 
 ## Elegir sin inventar uniformidad
 
-En código existente, seguí la convención coherente del área afectada y conservá nombres públicos salvo que el refactor incluya cambiarlos. Para archivos nuevos sin precedente local, usá la forma predominante indicada aquí. Las variantes históricas no obligan a introducir nombres inconsistentes en módulos nuevos.
+Aplicá la regla del equipo de dominio/caso de uso a archivos nuevos y reorganizados. En código existente, conservá nombres públicos salvo que el refactor incluya cambiarlos. Para archivos nuevos sin precedente local, usá la forma predominante indicada aquí. Las variantes históricas no obligan a introducir nombres inconsistentes en módulos nuevos.
 
 | Elemento | Forma reutilizable | Observación |
 |---|---|---|
-| Feature | carpeta kebab-case | El modelo mezcla singular/plural; elegí según el vocabulario del destino y mantenelo dentro de la feature. |
+| Dominio/recurso | carpeta kebab-case, nombre estable | Usar el mismo nombre entre capas, por ejemplo `products`. |
+| Funcionalidad/caso de uso | carpeta kebab-case que nombra la operación | Usar el mismo nombre entre capas, por ejemplo `list-products`. |
 | Interactor | `VerbConcept.ts`, clase `VerbConcept` | Sin sufijo obligatorio `UseCase`, `Interactor` o `.service`. |
 | Método de interactor | lowerCamelCase que nombra la operación | `create`, `findById`, `updateBySku`, `changeStatus`; no hay `execute()` general. |
 | Dependencias de constructor | objeto tipado, parámetro `builder` | Hay interfaces `builderConcept`, `ConceptBuilder` y `BuilderConcept`; no existe un único nombre predominante. |
 | Propiedad de dependencia | lowerCamelCase según capacidad | `repository`, `cacheManager`, o nombre funcional más específico. |
-| Puerto | `IConceptRepository.ts` / `IConceptRepository` | `I` predomina en contratos de integración; también hay `IQueueConnection` e `ICacheManager`. |
-| Driver HTTP | `APIIntegrationRepository.ts` o `IntegrationApiRepository.ts` | El prefijo `API` es frecuente pero no universal. Elegí la forma vecina. |
+| Puerto | `IOperation.ts` / `IOperation`, o contrato compartido `IConceptRepository` | `I` predomina en contratos de integración; también hay `IQueueConnection` e `ICacheManager`. |
+| Driver de caso de uso | `OperationRepository.ts` / `OperationRepository` | Por ejemplo `GetAllProductsRepository`; proveedor/tecnología se distingue sólo cuando aporta claridad. |
 | Wrapper Nest | `NestIntegrationRepository.ts` / misma clase | En cache/queue hay drivers sin prefijo Nest; no renombrarlos automáticamente. |
 | Implementación en memoria | `InMemoryConceptRepository.ts` | También existe `InMemoryCacheManager`. |
 | Controller | `concept.controller.ts`, clase `ConceptController` | El basename es lowerCamelCase cuando tiene varias palabras. |
@@ -26,6 +27,12 @@ En código existente, seguí la convención coherente del área afectada y conse
 | Token de interactor | string con el nombre de clase | Mismo literal en `provide` y `@Inject`. |
 
 No crear una convención global de `Symbol`, archivos `.port.ts`, `.adapter.ts`, `.use-case.ts` o carpetas `dto` por suponer que toda Clean Architecture los usa. Si ya existen en el destino, evaluar compatibilidad con el alcance antes de cambiarlos.
+
+## Correspondencia entre capas
+
+Ejemplo normativo del equipo: `products/list-products` contiene el puerto `IGetAllProducts`, driver `GetAllProductsRepository`, interactor `GetAllProducts`, controller `listProducts.controller.ts`, wrapper `NestGetAllProductsRepository` y módulo `ListProducts.module.ts`. `Product.ts` compartido vive en `core/entities/products/`.
+
+No alternar `product`, `products`, `get-products` y `list-products` para la misma jerarquía. Mantener el token exactamente igual en la factory y el punto de inyección. Los nombres de proveedores del modelo son evidencia histórica, no el criterio primario para organizar drivers nuevos.
 
 ## Modelos y DTOs
 

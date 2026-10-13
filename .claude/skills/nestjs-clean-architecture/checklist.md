@@ -12,6 +12,13 @@ Aplicar a la parte afectada; marcar no aplicable con razón cuando corresponda. 
 
 ## Estructura y naming
 
+- [ ] Cada archivo exclusivo de una operación está bajo dominio/caso de uso dentro de su capa.
+- [ ] La misma funcionalidad usa la misma jerarquía conceptual y nombres en app/core.
+- [ ] Entidades compartidas están a nivel del dominio y no duplicadas por operación.
+- [ ] Contratos/drivers compartidos están en el nivel común más cercano; sus consumidores no dependen de la carpeta de otro caso de uso.
+- [ ] No hay funcionalidades mezcladas en carpetas planas, shared sin responsabilidad clara ni niveles redundantes.
+- [ ] Los movimientos de archivos actualizan imports, tests, providers y exports sin alterar contratos públicos accidentalmente.
+
 - [ ] Interactors en su feature, contratos en adapters, implementaciones en drivers y composición en módulos, o equivalentes locales justificados.
 - [ ] Nombres consistentes con la feature; sin suffixes, capas o archivos vacíos impuestos por costumbre.
 - [ ] No copié entidades, rutas, proveedores, identificadores ni reglas comerciales del ejemplo.

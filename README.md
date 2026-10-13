@@ -32,3 +32,9 @@ También podés pedir que implemente una funcionalidad, cree un módulo o refact
 Las instrucciones están en español y son independientes del dominio. No requieren acceso al repositorio modelo ni a sus servicios. Los ejemplos conservan nombres originales únicamente como referencia; las reglas operativas se adaptan al proyecto destino.
 
 La Skill distingue patrones observados, generalizaciones e inconsistencias. No exige instalar todas las tecnologías mencionadas ni reemplazar la arquitectura de un proyecto completo para realizar un cambio localizado.
+
+## Organización central del equipo
+
+Cada capa se organiza por **dominio/recurso → funcionalidad/caso de uso**, con la misma jerarquía conceptual en `app` y `core`. Por ejemplo: `core/interactors/products/list-products/GetAllProducts.ts` y `app/controller/products/list-products/listProducts.controller.ts`.
+
+Las entidades compartidas viven a nivel del dominio. Los contratos y drivers reutilizados se elevan al nivel común más cercano dentro de su capa, sin duplicarlos. La Skill exige esta organización para archivos nuevos y flujos refactorizados, evitando carpetas planas con funcionalidades mezcladas y niveles redundantes.

@@ -1,15 +1,21 @@
 # Responsabilidades y decisiones de ubicación
 
+## Ubicación dentro de cada capa
+
+Primero elegí la capa por responsabilidad; después el dominio y el caso de uso. Para componentes exclusivos, usá `<layer>/<domain>/<use-case>/`. Para componentes realmente compartidos, elegí el nivel común más cercano dentro de esa capa. La jerarquía conceptual debe coincidir entre `app` y `core`.
+
+Una ubicación correcta por capa no compensa mezclar funcionalidades en una carpeta plana. Las entidades compartidas pertenecen a `core/entities/<domain>`; contratos/drivers comunes se elevan al dominio o área transversal explícita sin duplicarse. Consultá [architecture.md](architecture.md) para reglas y ejemplos de promoción.
+
 ## Matriz de decisión
 
 | Pregunta | Ubicación | Límite |
 |---|---|---|
 | ¿Lee body, params, query, headers o archivos de HTTP? | `app/controller` | No consultar proveedor o base directamente. |
 | ¿Construye enlaces o envoltorios de respuesta HTTP? | Controller/base de presentación | No hacerlo dentro del repositorio. |
-| ¿Decide si una operación está permitida o qué pasos ejecutar? | `core/interactors/<feature>` | No depender del contenedor Nest ni del cliente externo concreto. |
+| ¿Decide si una operación está permitida o qué pasos ejecutar? | `core/interactors/<domain>/<use-case>` | No depender del contenedor Nest ni del cliente externo concreto. |
 | ¿Valida campos o invariantes requeridos por la operación? | Interactor + `interactors/validations` | No confiar en tipos TypeScript como validación runtime. |
 | ¿Define estructuras de datos y enums compartidos? | `core/entities` | No introducir decoradores ORM o dependencias Nest en modelos ordinarios. |
-| ¿Expresa una capacidad requerida de un sistema externo? | `core/adapters/<kind>` | Interfaz orientada a capacidad, no reexportación de un SDK. |
+| ¿Expresa una capacidad requerida de un sistema externo? | `core/adapters/<domain>/<use-case>` o nivel común | Interfaz orientada a capacidad, no reexportación de un SDK. |
 | ¿Arma requests, serializa payloads o interpreta respuestas externas? | Driver de integración | No trasladar URLs, headers ni detalles del proveedor al interactor. |
 | ¿Ejecuta consultas o gestiona entidades ORM? | Driver de persistencia | No propagar el EntityManager o entidad ORM mediante el puerto. |
 | ¿Necesita `@Injectable`, `HttpService` o tokens Nest para conectar un cliente? | `app/drivers` y módulo | No convertir el interactor en injectable para resolver ese detalle. |

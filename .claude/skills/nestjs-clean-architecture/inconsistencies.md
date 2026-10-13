@@ -4,6 +4,10 @@ Referencia histórica: `wms-api`, commit `261d7ee`. El análisis fue estático; 
 
 No copiar estas excepciones para lograr una supuesta fidelidad arquitectónica. Tampoco corregirlas automáticamente en un proyecto ajeno al alcance solicitado.
 
+## Diferencia respecto de la regla de organización del equipo
+
+El modelo original contiene entidades y controllers relativamente planos y drivers agrupados por integración. Esa organización es evidencia histórica, pero no satisface la regla posterior del equipo: capa → dominio/recurso → funcionalidad/caso de uso. Los ejemplos se conservan como procedencia; nuevos archivos y flujos refactorizados deben seguir [architecture.md](architecture.md). La separación por dominio/caso de uso es una decisión explícita del equipo, no una conclusión atribuida al modelo.
+
 ## Dependencias y composición
 
 | Evidencia de origen | Inconsistencia o límite | Cómo tratarla |
